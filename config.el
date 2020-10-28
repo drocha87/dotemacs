@@ -73,7 +73,7 @@
 (set-face-attribute 'default nil :font "Monospace 11")
 
 (use-package lsp-mode
-  :hook ((c-mode c++-mode dart-mode java-mode json-mode python-mode typescript-mode xml-mode) . lsp)
+  :hook ((web-mode c-mode c++-mode dart-mode java-mode json-mode python-mode typescript-mode xml-mode) . lsp)
   :custom
   (lsp-clients-typescript-server-args '("--stdio" "--tsserver-log-file" "/dev/stderr"))
   (lsp-enable-folding nil)
@@ -311,9 +311,47 @@
   :mode ("\\.ts\\'" "\\.tsx\\'")
   :hook (typescript-mode . prettier-js-mode)
   :custom
+
   (add-hook 'typescript-mode-hook #'(lambda ()
                                       (enable-minor-mode
                                        '("\\.tsx?\\'" . prettier-js-mode)))))
+
+(setq-default typescript-indent-level 2)
+
+(defun setup-tide-mode ()
+  "Setup tide mode."
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+  (company-mode +1)
+  (setq typescript-indent-level 2)
+  (setq tide-always-show-documentation t)
+  (setq tide-jump-to-definition-reuse-window nil))
+
+(use-package tide
+  :ensure t
+  :after (typescript-mode company flycheck)
+  :hook ((typescript-mode . setup-tide-setup)
+         (typescript-mode . tide-hl-identifier-mode)
+         (before-save . tide-format-before-save))
+  :init
+  (bind-key "M-." 'tide-jump-to-definition))
+
+;; Should be move to typescript mode file
+(global-set-key (kbd "C-.") 'tide-fix)
+
+;; aligns annotation to the right hand side
+;; (setq company-tooltip-align-annotations t)
+
+;; formats the buffer before saving
+;; (add-hook 'before-save-hook 'tide-format-before-save)
+;; (add-hook 'typescript-mode-hook #'setup-tide-mode)
 
 ;; (use-package vue-mode
 ;;  :delight "V "
@@ -657,6 +695,7 @@
     (">" flyspell-correct-next "next" :color pink)
     ("f" langtool-check "find"))))
 
+
 (defhydra hydra-typescript (:color blue)
   "
   ^
@@ -760,14 +799,15 @@
     (if (buffer-file-name)
         (if (string-match (car my-pair) buffer-file-name)
             (funcall (cdr my-pair)))))
-  :custom
-  (web-mode-attr-indent-offset 2)
-  (web-mode-block-padding 2)
-  (web-mode-css-indent-offset 2)
-  (web-mode-code-indent-offset 2)
-  (web-mode-comment-style 2)
-  (web-mode-enable-current-element-highlight t)
-  (web-mode-markup-indent-offset 2))
+  ;; :custom
+  ;; (web-mode-attr-indent-offset 2)
+  ;; (web-mode-comment-style 2)
+  ;; (web-mode-enable-current-element-highlight t)
+  ;; (web-mode-block-padding 0)
+  ;; (web-mode-style-padding 0)
+  ;; (web-mode-script-padding 0)
+  )
+
 
 (add-hook 'web-mode-hook #'(lambda ()
                              (enable-minor-mode
@@ -785,33 +825,38 @@
                              (enable-minor-mode
                               '("\\.ts?\\'" . prettier-js-mode))))
 
-
-(setq web-mode-code-indent-offset                   2
-      web-mode-markup-indent-offset                 2
-      web-mode-css-indent-offset                    2
-      web-mode-enable-html-entities-fontification   nil
-      web-mode-enable-block-face                    nil
-      web-mode-enable-comment-annotation            nil
-      web-mode-enable-comment-interpolation         nil
-      web-mode-enable-control-block-indentation     nil
-      web-mode-enable-css-colorization              nil
-      web-mode-enable-current-column-highlight      nil
-      web-mode-enable-current-element-highlight     nil
-      web-mode-enable-element-content-fontification nil
-      web-mode-enable-heredoc-fontification         nil
-      web-mode-enable-inlays                        nil
-      web-mode-enable-optional-tags                 nil
-      web-mode-enable-part-face                     nil
-      web-mode-enable-sexp-functions                nil
-      web-mode-enable-sql-detection                 nil
-      web-mode-enable-string-interpolation          nil
-      web-mode-enable-whitespace-fontification      nil
-      web-mode-enable-auto-expanding                nil
-      web-mode-enable-auto-indentation              nil
-      web-mode-enable-auto-closing                  nil
-      web-mode-enable-auto-opening                  nil
-      web-mode-enable-auto-pairing                  nil
-      web-mode-enable-auto-quoting                  nil)
+(defun my-web-mode-hook ()
+  "Hooks for Web mode."
+  (setq web-mode-code-indent-offset                   0)
+  (setq web-mode-markup-indent-offset                 2)
+  (setq web-mode-css-indent-offset                    0)
+  (setq web-mode-block-padding                        0)
+  (setq web-mode-style-padding                        0)
+  (setq web-mode-script-padding                       0)
+  (setq web-mode-enable-html-entities-fontification   nil)
+  (setq web-mode-enable-block-face                    nil)
+  (setq web-mode-enable-comment-annotation            nil)
+  (setq web-mode-enable-comment-interpolation         nil)
+  (setq web-mode-enable-control-block-indentation     nil)
+  (setq web-mode-enable-css-colorization              nil)
+  (setq web-mode-enable-current-column-highlight      nil)
+  (setq web-mode-enable-current-element-highlight     nil)
+  (setq web-mode-enable-element-content-fontification nil)
+  (setq web-mode-enable-heredoc-fontification         nil)
+  (setq web-mode-enable-inlays                        nil)
+  (setq web-mode-enable-optional-tags                 nil)
+  (setq web-mode-enable-part-face                     nil)
+  (setq web-mode-enable-sexp-functions                nil)
+  (setq web-mode-enable-sql-detection                 nil)
+  (setq web-mode-enable-string-interpolation          nil)
+  (setq web-mode-enable-whitespace-fontification      nil)
+  (setq web-mode-enable-auto-expanding                nil)
+  (setq web-mode-enable-auto-indentation              nil)
+  (setq web-mode-enable-auto-closing                  nil)
+  (setq web-mode-enable-auto-opening                  nil)
+  (setq web-mode-enable-auto-pairing                  nil)
+  (setq web-mode-enable-auto-quoting                  nil))
+(add-hook 'web-mode-hook 'my-web-mode-hook)
 
 (use-package which-key
   :defer 0.2
@@ -1087,7 +1132,11 @@
   (projectile-keymap-prefix (kbd "C-c C-p"))
   (projectile-known-projects-file (expand-file-name (format "%s/emacs/projectile-bookmarks.eld" xdg-cache)))
   (projectile-mode-line '(:eval (projectile-project-name)))
-  :config (projectile-global-mode))
+  :config (projectile-global-mode)
+  :init
+  (when (file-directory-p "~/devel")
+    (setq projectile-project-search-path '("~/devel" "~/devel/euyome")))
+  (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
   :after (counsel projectile)
@@ -1224,12 +1273,17 @@
 
 ;; helm git grep
 ;; replace to counsel and ivy in future `https://oremacs.com/2015/04/19/git-grep-ivy/`
-(use-package helm)
-(use-package
-  helm-git-grep)
+;; (use-package helm)
+;; (use-package
+;;   helm-git-grep)
+;; (global-set-key (kbd "C-c g") 'helm-git-grep)
+;; (define-key isearch-mode-map (kbd "C-c g") 'helm-git-grep-from-isearch)
+;; (eval-after-load 'helm
+;;   '(define-key helm-map (kbd "C-c g") 'helm-git-grep-from-helm))
 
-
-(global-set-key (kbd "C-c g") 'helm-git-grep)
-(define-key isearch-mode-map (kbd "C-c g") 'helm-git-grep-from-isearch)
-(eval-after-load 'helm
-  '(define-key helm-map (kbd "C-c g") 'helm-git-grep-from-helm))
+;; Custom keybinds
+(global-set-key (kbd "C-c g") 'counsel-rg)
+(global-set-key (kbd "C-p") 'counsel-projectile-find-file)
+;; Insert line below like vim o
+(global-set-key (kbd "C-<return>") (kbd "C-e <return>"))
+(global-set-key (kbd "C-<enter>") (kbd "C-e <return>"))
