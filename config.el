@@ -73,9 +73,11 @@
 (set-face-attribute 'default nil :font "Monospace 11")
 
 (use-package lsp-mode
-  :hook ((web-mode c-mode c++-mode dart-mode java-mode json-mode python-mode typescript-mode xml-mode) . lsp)
+  ;; :hook ((web-mode c-mode c++-mode dart-mode java-mode json-mode python-mode
+  ;;                  typescript-mode xml-mode) . lsp)
+  :hook ((web-mode c-mode c++-mode dart-mode java-mode json-mode python-mode xml-mode) . lsp)
   :custom
-  (lsp-clients-typescript-server-args '("--stdio" "--tsserver-log-file" "/dev/stderr"))
+  ;; (lsp-clients-typescript-server-args '("--stdio" "--tsserver-log-file" "/dev/stderr"))
   (lsp-enable-folding nil)
   (lsp-enable-links nil)
   (lsp-enable-snippet nil)
@@ -332,19 +334,21 @@
   (company-mode +1)
   (setq typescript-indent-level 2)
   (setq tide-always-show-documentation t)
-  (setq tide-jump-to-definition-reuse-window nil))
+  (setq tide-jump-to-definition-reuse-window t))
 
 (use-package tide
   :ensure t
-  :after (typescript-mode company flycheck)
-  :hook ((typescript-mode . setup-tide-setup)
-         (typescript-mode . tide-hl-identifier-mode)
-         (before-save . tide-format-before-save))
-  :init
-  (bind-key "M-." 'tide-jump-to-definition))
-
+  :after (typescript-mode company flycheck))
+;;  :hook ((typescript-mode . setup-tide-setup)
+;;         (typescript-mode . tide-hl-identifier-mode)
+;;         (before-save . tide-format-before-save))
+;;  :init
+;;  (bind-key "M-." 'tide-jump-to-definition))
+(add-hook 'before-save-hook 'tide-format-before-save)
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
 ;; Should be move to typescript mode file
 (global-set-key (kbd "C-.") 'tide-fix)
+(global-set-key (kbd "M-.") 'tide-jump-to-definition)
 
 ;; aligns annotation to the right hand side
 ;; (setq company-tooltip-align-annotations t)
@@ -827,9 +831,9 @@
 
 (defun my-web-mode-hook ()
   "Hooks for Web mode."
-  (setq web-mode-code-indent-offset                   0)
+  (setq web-mode-code-indent-offset                   2)
   (setq web-mode-markup-indent-offset                 2)
-  (setq web-mode-css-indent-offset                    0)
+  (setq web-mode-css-indent-offset                    2)
   (setq web-mode-block-padding                        0)
   (setq web-mode-style-padding                        0)
   (setq web-mode-script-padding                       0)
