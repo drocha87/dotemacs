@@ -25,7 +25,7 @@
  read-process-output-max (* 1024 1024)      ; Increase the amount of data reads from the process
  scroll-conservatively most-positive-fixnum ; Always scroll by one line
  select-enable-clipboard t                  ; Merge system's and Emacs' clipboard
- tab-width 4                                ; Set width for tabs
+ tab-width 2                                ; Set width for tabs
  use-package-always-ensure t                ; Avoid the :ensure keyword for each package
  user-full-name "Diego Rocha"               ; Set the full name of the current user
  user-mail-address "dlmrocha87@gmail.com"   ; Set the email address of the current user
@@ -39,6 +39,7 @@
 (global-hl-line-mode)                       ; Hightlight current line
 (set-default-coding-systems 'utf-8)         ; Default to utf-8 encoding
 (show-paren-mode 1)                         ; Show the parent
+(global-display-line-numbers-mode 1)
 
 (setq ring-bell-function 'ignore)
 (setq visible-bell nil)
@@ -1154,6 +1155,8 @@
                                    (when smerge-mode
                                      (hydra-merge/body)))))
 
+
+
 (use-package git-gutter
   :defer 0.3
   :delight
@@ -1239,21 +1242,20 @@
          (text-mode . turn-on-auto-fill))
   :custom (set-mark-command-repeat-pop t))
 
-(use-package yasnippet-snippets
-  :after yasnippet
-  :config (yasnippet-snippets-initialize))
+;; (use-package yasnippet-snippets
+;;   :after yasnippet
+;;   :config (yasnippet-snippets-initialize))
 
-(use-package yasnippet
-  :delight yas-minor-mode " υ"
-  :hook (yas-minor-mode . my/disable-yas-if-no-snippets)
-  :config (yas-global-mode)
-  :preface
-  (defun my/disable-yas-if-no-snippets ()
-    (when (and yas-minor-mode (null (yas--get-snippet-tables)))
-      (yas-minor-mode -1))))
+;; (use-package yasnippet
+;;   :delight yas-minor-mode " υ"
+;;   :hook (yas-minor-mode . my/disable-yas-if-no-snippets)
+;;   :config (yas-global-mode)
+;;   :preface
+;;   (defun my/disable-yas-if-no-snippets ()
+;;     (when (and yas-minor-mode (null (yas--get-snippet-tables)))
+;;       (yas-minor-mode -1))))
 
-(use-package ivy-yasnippet :after yasnippet)
-(use-package react-snippets :after yasnippet)
+;; (use-package ivy-yasnippet :after yasnippet)
 
 ;;(use-package org
 ;;  :ensure org-plus-contrib
@@ -1281,3 +1283,6 @@
 ;; Insert line below like vim o
 (global-set-key (kbd "C-<return>") (kbd "C-e <return>"))
 (global-set-key (kbd "C-<enter>") (kbd "C-e <return>"))
+
+(provide 'config)
+;;; config.el ends here
