@@ -311,7 +311,7 @@
 
 (use-package typescript-mode
   :mode ("\\.ts\\'" "\\.tsx\\'")
-  :hook (typescript-mode . prettier-js-mode)
+  ;; :hook (typescript-mode . prettier-js-mode)
   :custom
 
   (add-hook 'typescript-mode-hook #'(lambda ()
@@ -334,35 +334,20 @@
   (company-mode +1)
   (setq typescript-indent-level 2)
   (setq tide-always-show-documentation t)
-  (setq tide-jump-to-definition-reuse-window t))
+  (setq tide-jump-to-definition-reuse-window t)
+  (add-hook 'before-save-hook 'tide-format-before-save))
 
+;;; Typescript tide integration
 (use-package tide
   :ensure t
   :after (typescript-mode company flycheck))
-;;  :hook ((typescript-mode . setup-tide-setup)
-;;         (typescript-mode . tide-hl-identifier-mode)
-;;         (before-save . tide-format-before-save))
-;;  :init
-;;  (bind-key "M-." 'tide-jump-to-definition))
-(add-hook 'before-save-hook 'tide-format-before-save)
+
 (add-hook 'typescript-mode-hook #'setup-tide-mode)
-;; Should be move to typescript mode file
+
 (global-set-key (kbd "C-.") 'tide-fix)
 (global-set-key (kbd "M-.") 'tide-jump-to-definition)
 
-;; aligns annotation to the right hand side
-;; (setq company-tooltip-align-annotations t)
 
-;; formats the buffer before saving
-;; (add-hook 'before-save-hook 'tide-format-before-save)
-;; (add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-;; (use-package vue-mode
-;;  :delight "V "
-;;  :mode "\\.vue\\'"
-;;  :custom
-;;  (mmm-submode-decoration-level 0)
-;;  (vue-html-extra-indent 2))
 
 (use-package yaml-mode
   :delight "ψ "
@@ -389,25 +374,25 @@
   :delight
   :hook (company-mode . company-box-mode))
 
-(use-package files
-  :ensure nil
-  :preface
-  (defvar *afilename-cmd*
-    `((,(format "%s/X11/Xresources" xdg-config) . ,(format "xrdb -merge %s/X11/Xresources" xdg-config))
-      (,(format "%s/xbindkeysrc" (getenv "HOME")) . "xbindkeys -p"))
-    "File association list with their respective command.")
+;; (use-package files
+;;   :ensure nil
+;;   :preface
+;;   (defvar *afilename-cmd*
+;;     `((,(format "%s/X11/Xresources" xdg-config) . ,(format "xrdb -merge %s/X11/Xresources" xdg-config))
+;;       (,(format "%s/xbindkeysrc" (getenv "HOME")) . "xbindkeys -p"))
+;;     "File association list with their respective command.")
 
-  (defun my/cmd-after-saved-file ()
-    "Execute a command after saved a specific file."
-    (let* ((match (assoc (buffer-file-name) *afilename-cmd*)))
-      (when match
-        (shell-command (cdr match)))))
-  :hook (after-save . my/cmd-after-saved-file)
-  :custom
-  (backup-directory-alist `(("." . ,(expand-file-name (format "%s/emacs/backups/" xdg-data)))))
-  (delete-old-versions -1)
-  (vc-make-backup-files t)
-  (version-control t))
+;;   (defun my/cmd-after-saved-file ()
+;;     "Execute a command after saved a specific file."
+;;     (let* ((match (assoc (buffer-file-name) *afilename-cmd*)))
+;;       (when match
+;;         (shell-command (cdr match)))))
+;;   :hook (after-save . my/cmd-after-saved-file)
+;;   :custom
+;;   (backup-directory-alist `(("." . ,(expand-file-name (format "%s/emacs/backups/" xdg-data)))))
+;;   (delete-old-versions -1)
+;;   (vc-make-backup-files t)
+;;   (version-control t))
 
 (use-package ibuffer
   :bind ("C-x C-b" . ibuffer))
@@ -514,33 +499,14 @@
   ;; to remove
   (ispell-local-dictionary "en_US")
   (ispell-local-dictionary-alist
-   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)
-     ("fr_BE" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "fr_BE") nil utf-8)))
+   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))
 
   (ispell-dictionary "en_US")
   (ispell-dictionary-alist
-   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)
-     ("fr_BE" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "fr_BE") nil utf-8)))
+   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))
   (ispell-program-name (executable-find "hunspell"))
   (ispell-really-hunspell t)
-  (ispell-silently-savep t)
-  :preface
-  (defun my/switch-language ()
-    "Switches between the English and French language."
-    (interactive)
-    (let* ((current-dictionary ispell-current-dictionary)
-           (new-dictionary (if (string= current-dictionary "fr_BE") "en_US" "fr_BE")))
-      (ispell-change-dictionary new-dictionary)
-      (if (string= new-dictionary "fr_BE")
-          (langtool-switch-default-language "fr")
-        (langtool-switch-default-language "en"))
-
-      ;;Clears all these old errors after switching to the new language
-      (if (and (boundp 'flyspell-mode) flyspell-mode)
-          (flyspell-mode 0)
-        (flyspell-mode 1))
-
-    (message "Dictionary switched from %s to %s" current-dictionary new-dictionary))))
+  (ispell-silently-savep t))
 
 (use-package langtool
   :defer 2
@@ -692,7 +658,6 @@
     ("C" langtool-check-done "clear")
     ("d" ispell-change-dictionary "dictionary")
     ("l" (message "Current language: %s (%s)" langtool-default-language ispell-current-dictionary) "language")
-    ("s" my/switch-language "switch")
     ("w" wiki-summary "wiki"))
    "Errors"
    (("<" flyspell-correct-previous "previous" :color pink)
@@ -1202,11 +1167,36 @@
   :ensure nil
   :hook (before-save . delete-trailing-whitespace))
 
+(defun drocha/backward-kill-word ()
+  "Remove all whitespace if the character behind the cursor is whitespace, otherwise remove a word."
+  (interactive)
+  (cond ((looking-back " ") (delete-horizontal-space))
+        ((looking-back "\n") (backward-delete-char 1))
+        ((looking-back "_") (backward-delete-char 1))
+        ((looking-back "[()#\"\-]") (backward-delete-char 1))
+        (t (backward-kill-word 1))))
+
+(global-set-key (kbd "C-<backspace>") 'drocha/backward-kill-word)
+
+(defun drocha/forward-kill-word ()
+  "Remove all whitespace if the character behind the cursor is whitespace, otherwise remove a word."
+  (interactive)
+  (setq drocha/delete-forward-whites-regex "[ \n]")
+  (setq drocha/delete-forward-special-regex "[:;]")
+  (cond ((looking-at drocha/delete-forward-whites-regex)
+         (progn (while (looking-at drocha/delete-forward-whites-regex)
+                  (delete-char 1))))
+        ((looking-at drocha/delete-forward-special-chars-regex)
+         (delete-char 1))
+        (t (kill-word 1))))
+
+(global-set-key (kbd "C-<delete>") 'drocha/forward-kill-word)
+
 ;; TODO: review this one
-(use-package hungry-delete
-  :defer 0.7
-  :delight
-  :config (global-hungry-delete-mode))
+;; (use-package hungry-delete
+;;   :defer 0.7
+;;   :delight
+;;   :config (global-hungry-delete-mode))
 
 (global-set-key [remap kill-buffer] #'kill-this-buffer)
 
