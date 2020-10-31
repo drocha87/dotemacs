@@ -92,11 +92,12 @@
 
 (use-package lsp-ui)
 
-(use-package dap-mode
-  :after lsp-mode
-  :config
-  (dap-mode t)
-  (dap-ui-mode t))
+;; I'm not sure about this one
+;; (use-package dap-mode
+;;   :after lsp-mode
+;;   :config
+;;   (dap-mode t)
+;;   (dap-ui-mode t))
 
 (use-package doom-themes
   :config (load-theme 'doom-dark+ t))
@@ -104,10 +105,6 @@
 (use-package doom-modeline
   :defer 0.1
   :config (doom-modeline-mode))
-
-(use-package fancy-battery
-  :after doom-modeline
-  :hook (after-init . fancy-battery-mode))
 
 (use-package solaire-mode
   :custom (solaire-mode-remap-fringe t)
@@ -172,12 +169,6 @@
 (use-package scss-mode
   :mode "\\.scss\\'")
 
-(use-package csv-mode)
-
-(use-package dockerfile-mode
-  :delight "δ "
-  :mode "Dockerfile\\'")
-
 (use-package elisp-mode :ensure nil :delight "ξ ")
 
 (use-package eldoc
@@ -233,83 +224,6 @@
       (funcall encode array)))
   :config (advice-add 'json-encode-array :around #'my/json-array-of-numbers-on-one-line))
 
-(use-package blacken
-  :delight
-  :hook (python-mode . blacken-mode)
-  :custom (blacken-line-length 79))
-
-(use-package lsp-pyright
-  :if (executable-find "pyright")
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-pyright)
-                         (lsp))))
-
-(use-package lsp-python-ms
-  :defer 0.3
-  :custom (lsp-python-ms-auto-install-server t))
-
-(use-package python
-  :delight "π "
-  :bind (("M-[" . python-nav-backward-block)
-         ("M-]" . python-nav-forward-block))
-  :preface
-  (defun python-remove-unused-imports()
-    "Removes unused imports and unused variables with autoflake."
-    (interactive)
-    (if (executable-find "autoflake")
-        (progn
-          (shell-command (format "autoflake --remove-all-unused-imports -i %s"
-                                 (shell-quote-argument (buffer-file-name))))
-          (revert-buffer t t t))
-      (warn "python-mode: Cannot find autoflake executable."))))
-
-(use-package py-isort
-  :after python
-  :hook ((python-mode . pyvenv-mode)
-         (before-save . py-isort-before-save)))
-
-(use-package pyenv-mode
-  :after python
-  :hook ((python-mode . pyenv-mode)
-         (projectile-switch-project . projectile-pyenv-mode-set))
-  :custom (pyenv-mode-set "3.8.5")
-  :preface
-  (defun projectile-pyenv-mode-set ()
-    "Set pyenv version matching project name."
-    (let ((project (projectile-project-name)))
-      (if (member project (pyenv-mode-versions))
-          (pyenv-mode-set project)
-        (pyenv-mode-unset)))))
-
-(use-package pyvenv
-  :after python
-  :hook ((python-mode . pyvenv-mode)
-         (python-mode . (lambda ()
-                          (if-let ((pyvenv-directory (find-pyvenv-directory (buffer-file-name))))
-                              (pyvenv-activate pyvenv-directory))
-                          (lsp))))
-  :custom
-  (pyvenv-default-virtual-env-name "env")
-  (pyvenv-mode-line-indicator '(pyvenv-virtual-env-name ("[venv:"
-                                                         pyvenv-virtual-env-name "]")))
-  :preface
-  (defun find-pyvenv-directory (path)
-    "Checks if a pyvenv directory exists."
-    (cond
-     ((not path) nil)
-     ((file-regular-p path) (find-pyvenv-directory (file-name-directory path)))
-     ((file-directory-p path)
-      (or
-       (seq-find
-        (lambda (path) (file-regular-p (expand-file-name "pyvenv.cfg" path)))
-        (directory-files path t))
-       (let ((parent (file-name-directory (directory-file-name path))))
-         (unless (equal parent path) (find-pyvenv-directory parent))))))))
-
-;;(use-package sh-script
-;;  :ensure nil
-;;  :hook (after-save . executable-make-buffer-file-executable-if-script-p))
-
 (use-package sql-indent
   :after (:any sql sql-interactive-mode)
   :delight sql-mode "Σ ")
@@ -318,7 +232,6 @@
   :mode ("\\.ts\\'" "\\.tsx\\'")
   ;; :hook (typescript-mode . prettier-js-mode)
   :custom
-
   (add-hook 'typescript-mode-hook #'(lambda ()
                                       (enable-minor-mode
                                        '("\\.tsx?\\'" . prettier-js-mode)))))
@@ -354,10 +267,6 @@
   :delight "ψ "
   :mode "\\.yml\\'"
   :interpreter ("yml" . yml-mode))
-
-;;(use-package alert
-;;  :defer 1
-;;  :custom (alert-default-style 'libnotify))
 
 (use-package company
   :defer 0.5
@@ -407,38 +316,6 @@
       (ibuffer-do-sort-by-alphabetic)))
   :hook (ibuffer . my/ibuffer-projectile))
 
-;;(defvar *protected-buffers* '("*scratch*" "*Messages*")
-;;  "Buffers that cannot be killed.")
-;;
-;;(defun my/protected-buffers ()
-;;  "Protects some buffers from being killed."
-;;  (dolist (buffer *protected-buffers*)
-;;    (with-current-buffer buffer
-;;      (emacs-lock-mode 'kill))))
-;;
-;;(add-hook 'after-init-hook #'my/protected-buffers)
-
-;;(use-package dashboard
-;;  :if (< (length command-line-args) 2)
-;;  :preface
-;;  (defun dashboard-load-packages (list-size)
-;;    (insert (make-string (ceiling (max 0 (- dashboard-banner-length 38)) 5) ? )
-;;            (format "%d packages loaded in %s" (length package-activated-list) (emacs-init-time))))
-;;  :custom
-;;  (dashboard-banner-logo-title "With Great Power Comes Great Responsibility")
-;;  (dashboard-center-content t)
-;;  (dashboard-items '((packages)
-;;                     (agenda)
-;;                     (projects . 5)))
-;;  (dashboard-set-file-icons t)
-;;  (dashboard-set-heading-icons t)
-;;  (dashboard-set-init-info nil)
-;;  (dashboard-set-navigator t)
-;;  (dashboard-startup-banner 'logo)
-;;  :config
-;;  (add-to-list 'dashboard-item-generators '(packages . dashboard-load-packages))
-;;  (dashboard-setup-startup-hook))
-
 (use-package dired
   :ensure nil
   :delight "Dired "
@@ -464,9 +341,9 @@
   :defer 0.3
   :config (editorconfig-mode 1))
 
-(use-package async)
+;; (use-package async)
 
-;;(use-package nov
+;; (use-package nov
 ;;  :mode ("\\.epub\\'" . nov-mode)
 ;;  :custom (nov-text-width 75))
 
@@ -492,40 +369,6 @@
 (use-package flyspell-correct-ivy
   :after (flyspell ivy)
   :init (setq flyspell-correct-interface #'flyspell-correct-ivy))
-
-(use-package ispell
-  :defer 2
-  :ensure-system-package (hunspell . "yay -S hunspell")
-  :custom
-  ;; to remove
-  (ispell-local-dictionary "en_US")
-  (ispell-local-dictionary-alist
-   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))
-
-  (ispell-dictionary "en_US")
-  (ispell-dictionary-alist
-   '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US") nil utf-8)))
-  (ispell-program-name (executable-find "hunspell"))
-  (ispell-really-hunspell t)
-  (ispell-silently-savep t))
-
-(use-package langtool
-  :defer 2
-  :delight
-  :custom
-  (langtool-default-language "en")
-  (langtool-disabled-rules '("COMMA_PARENTHESIS_WHITESPACE"
-                             "COPYRIGHT"
-                             "DASH_RULE"
-                             "EN_QUOTES"
-                             "EN_UNPAIRED_BRACKETS"
-                             "UPPERCASE_SENTENCE_START"
-                             "WHITESPACE_RULE"))
-  (langtool-language-tool-jar (expand-file-name
-                               (format "%s/LangueageTool-4.2/languagetool-commandline.jar" xdg-lib)))
-  (langtool-language-tool-server-jar (expand-file-name
-                                      (format "%s/LanguageTool-4.2/languagetool-server.jar" xdg-lib)))
-  (langtool-mother-tongue "fr"))
 
 (use-package savehist
   :ensure nil
@@ -665,7 +508,6 @@
     (">" flyspell-correct-next "next" :color pink)
     ("f" langtool-check "find"))))
 
-
 (defhydra hydra-typescript (:color blue)
   "
   ^
@@ -706,6 +548,8 @@
     ("+" text-scale-increase "in")
     ("=" (text-scale-increase 0) "reset"))))
 
+;; Maybe is unnecessary because almost all languages that I program
+;; has format on save
 (use-package aggressive-indent
   :hook ((css-mode . aggressive-indent-mode)
          (emacs-lisp-mode . aggressive-indent-mode)
@@ -713,14 +557,7 @@
          (lisp-mode . aggressive-indent-mode))
   :custom (aggressive-indent-comments-too))
 
-(use-package electric-operator
-  :delight
-  :hook (python-mode . electric-operator-mode))
-
 (use-package move-text
-  ;; I need to pay attention if this gonna conflict with other keybinds
-  ;;  :bind (("M-p" . move-text-up)
-  ;;         ("M-n" . move-text-down))
   :config (move-text-default-bindings))
 
 ;;(use-package paradox
@@ -744,8 +581,6 @@
   :bind ("C-x R" . revert-buffer)
   :custom (auto-revert-verbose nil)
   :config (global-auto-revert-mode 1))
-
-;; (use-package try :defer 5)
 
 (use-package undo-tree
   :delight
@@ -832,22 +667,6 @@
   :defer 0.2
   :delight
   :config (which-key-mode))
-
-(use-package wiki-summary
-  :defer 1
-  :preface
-  (defun my/format-summary-in-buffer (summary)
-    "Given a summary, sticks it in the *wiki-summary* buffer and displays
-     the buffer."
-    (let ((buf (generate-new-buffer "*wiki-summary*")))
-      (with-current-buffer buf
-        (princ summary buf)
-        (fill-paragraph)
-        (goto-char (point-min))
-        (view-mode))
-      (pop-to-buffer buf))))
-
-(advice-add 'wiki-summary/format-summary-in-buffer :override #'my/format-summary-in-buffer)
 
 (use-package all-the-icons
   :if (display-graphic-p)
@@ -1154,8 +973,6 @@
   :hook (magit-diff-visit-file . (lambda ()
                                    (when smerge-mode
                                      (hydra-merge/body)))))
-
-
 
 (use-package git-gutter
   :defer 0.3
