@@ -44,6 +44,8 @@
 (setq ring-bell-function 'ignore)
 (setq visible-bell nil)
 
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 ;; I'm used to ctrl-z undo stuff
 (use-package emacs
   :bind (("C-z" . undo)
@@ -76,7 +78,7 @@
 (use-package lsp-mode
   ;; :hook ((web-mode c-mode c++-mode dart-mode java-mode json-mode python-mode
   ;;                  typescript-mode xml-mode) . lsp)
-  :hook ((web-mode c-mode c++-mode dart-mode java-mode json-mode python-mode xml-mode) . lsp)
+  :hook ((go-mode web-mode c-mode c++-mode dart-mode java-mode json-mode python-mode xml-mode) . lsp)
   :custom
   ;; (lsp-clients-typescript-server-args '("--stdio" "--tsserver-log-file" "/dev/stderr"))
   (lsp-enable-folding nil)
@@ -84,7 +86,9 @@
   (lsp-enable-snippet nil)
   (lsp-prefer-flymake nil)
   (lsp-session-file (expand-file-name (format "%s/emacs/lsp-session-v1" xdg-data)))
-  (lsp-restart 'auto-restart))
+  (lsp-restart 'auto-restart)
+  :config
+  (define-key lsp-mode-map (kbd "M-.") #'lsp-find-definition))
 
 (use-package lsp-ui)
 
@@ -95,7 +99,7 @@
   (dap-ui-mode t))
 
 (use-package doom-themes
-  :config (load-theme 'doom-nord-light t))
+  :config (load-theme 'doom-dark+ t))
 
 (use-package doom-modeline
   :defer 0.1
@@ -336,7 +340,8 @@
   (setq typescript-indent-level 2)
   (setq tide-always-show-documentation t)
   (setq tide-jump-to-definition-reuse-window t)
-  (add-hook 'before-save-hook 'tide-format-before-save))
+  (add-hook 'before-save-hook 'tide-format-before-save)
+  (define-key tide-mode-map (kbd "C-.") #'tide-fix))
 
 ;;; Typescript tide integration
 (use-package tide
@@ -344,11 +349,6 @@
   :after (typescript-mode company flycheck))
 
 (add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-(global-set-key (kbd "C-.") 'tide-fix)
-(global-set-key (kbd "M-.") 'tide-jump-to-definition)
-
-
 
 (use-package yaml-mode
   :delight "ψ "
@@ -1181,19 +1181,20 @@
 
 (global-set-key (kbd "C-<backspace>") 'drocha/backward-kill-word)
 
-(defun drocha/forward-kill-word ()
-  "Remove all whitespace if the character behind the cursor is whitespace, otherwise remove a word."
-  (interactive)
-  (setq drocha/delete-forward-whites-regex "[ \n]")
-  (setq drocha/delete-forward-special-regex "[:;]")
-  (cond ((looking-at drocha/delete-forward-whites-regex)
-         (progn (while (looking-at drocha/delete-forward-whites-regex)
-                  (delete-char 1))))
-        ((looking-at drocha/delete-forward-special-chars-regex)
-         (delete-char 1))
-        (t (kill-word 1))))
+;; (defun drocha/forward-kill-word ()
+;;   "Remove all whitespace if the character behind the cursor is whitespace, otherwise remove a word."
+;;   (interactive)
+;;   (setq drocha/delete-forward-whites-regex "[ \n]")
+;;   (setq drocha/delete-forward-special-regex "[:;]")
+;;   (cond ((looking-at drocha/delete-forward-whites-regex)
+;;          (progn (while (looking-at drocha/delete-forward-whites-regex)
+;;                   (delete-char 1))))
+;;         ((looking-at drocha/delete-forward-special-chars-regex)
+;;          (delete-char 1))
+;;         (t (kill-word 1))))
 
-(global-set-key (kbd "C-<delete>") 'drocha/forward-kill-word)
+;; (global-set-key (kbd "C-<delete>") 'drocha/forward-kill-word)
+;; (global-set-key (kbd "C-<delete>") 'kill-word)
 
 ;; TODO: review this one
 ;; (use-package hungry-delete
@@ -1283,6 +1284,17 @@
 ;; Insert line below like vim o
 (global-set-key (kbd "C-<return>") (kbd "C-e <return>"))
 (global-set-key (kbd "C-<enter>") (kbd "C-e <return>"))
+
+;;; Go Mode
+(use-package go-mode)
+
+;; Set up before-save hooks to format buffer and add/delete imports.
+;; Make sure you don't have other gofmt/goimports hooks enabled.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
 
 (provide 'config)
 ;;; config.el ends here
